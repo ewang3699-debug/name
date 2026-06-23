@@ -1,0 +1,39 @@
+name: Build Windows EXE
+
+# 触发条件：手动点击运行，或推送代码到 main 分支时
+on:
+  workflow_dispatch:        # 允许在网页上手动点按钮运行
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest   # 使用 GitHub 提供的 Windows 服务器
+
+    steps:
+      # 1. 拉取仓库代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 安装 Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas openpyxl pyinstaller
+
+      # 4. 打包成单个 exe
+      - name: Build EXE
+        run: pyinstaller --onefile --windowed --name id_checker id_checker.py
+
+      # 5. 把打好的 exe 作为产物上传，供下载
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: id_checker_windows_exe
+          path: dist/id_checker.exe
